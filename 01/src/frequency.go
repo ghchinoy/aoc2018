@@ -27,43 +27,16 @@ func main() {
 	fs := strings.Split(fmt.Sprintf("%s", freqb), "\n")
 	var f int
 	var e error
-	fmonitor := make(map[int]int)
-
-	found := false
-	var rot int
-
-	for found != true {
-		for _, change := range fs {
-			if change[:1] == "#" { // skip lines with "#"
-				continue
-			}
-			// fmt.Println(k, f, change, fmonitor[f])
-			fmonitor[f] = fmonitor[f] + 1
-			if fmonitor[f] == 2 {
-				log.Println("second instance of frequency", f)
-				found = true
-				break
-			}
-			/*
-				if val, ok := fmonitor[f]; ok {
-					fmonitor[f] = val + 1
-					if fmonitor[f] == 2 {
-						log.Println("second instance of frequency", fmonitor[f])
-					}
-				} else {
-					fmonitor[f] = fmonitor[f] + 1
-				}
-			*/
-			f, e = action(f, change)
-			if e != nil {
-				log.Println(e.Error())
-			}
+	for _, change := range fs {
+		if change[:1] == "#" { // skip lines with "#"
+			continue
 		}
-		rot++
+		f, e = action(f, change)
+		if e != nil {
+			log.Println(e.Error())
+		}
 	}
-
 	fmt.Println("Frequency", f)
-	fmt.Println("in this many rotations", rot)
 
 }
 
