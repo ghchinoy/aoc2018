@@ -18,12 +18,14 @@ type Claim struct {
 	Size   []int
 }
 
+// ByXOrigin is a sorting type for Claims
 type ByXOrigin []Claim
 
 func (a ByXOrigin) Len() int           { return len(a) }
 func (a ByXOrigin) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByXOrigin) Less(i, j int) bool { return a[i].Origin[0] < a[j].Origin[0] }
 
+// ByYOrigin is a sorting type for Claims
 type ByYOrigin []Claim
 
 func (a ByYOrigin) Len() int           { return len(a) }
@@ -107,6 +109,7 @@ func main() {
 	fmt.Println(countInches(xmax, ymax, grid))
 }
 
+// countInches returns the number of coordinates with 2 or more claims
 func countInches(xmax, ymax int, grid [][]int) int {
 	var inches int
 	for y := 0; y < ymax; y++ {
