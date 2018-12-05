@@ -80,7 +80,7 @@ func ingest(datafilepath string) ([]rec, error) {
 	sort.Sort(ByTime(records))
 
 	var guardID int
-	for _, r := range records {
+	for k, r := range records {
 		awake := false
 		action := r.Entry
 		if strings.Contains(action, "#") {
@@ -99,7 +99,8 @@ func ingest(datafilepath string) ([]rec, error) {
 		// rec{GuardID: guardID, Time: eventTime, Awake: awake}
 		//log.Printf("%s -> %s %v %v", stamp, eventTime, guardID, awake)
 		log.Printf("%+v", r)
-		records = append(records, r)
+		records[k] = r
+		//records = append(records, r)
 	}
 
 	//time.Parse(format)
