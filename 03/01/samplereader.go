@@ -119,8 +119,12 @@ func main() {
 	// output the answer for 03.01
 	fmt.Printf("%v: %s\n", countInches(xmax, ymax, grid), "with >= 2 overlapping inches")
 
+	// output the answer for 03.02
+	// list all the coordinates found for each of the narrowed list of claims
 	for id, grids := range gridsWithCount(xmax, ymax, grid, gridclaimants) {
 		//fmt.Println(id, grids)
+
+		// find the claim by ID
 		var c Claim
 		for _, v := range claims {
 			if v.ID == id {
@@ -128,13 +132,13 @@ func main() {
 				break
 			}
 		}
+		// if the length of the coords equals the length of the coords
+		// of the Claim, this claim has no other claims on top of it
 		//fmt.Printf("  %s\n", listAllCoords(c))
 		if len(grids) == len(listAllCoords(c)) {
 			fmt.Printf("Unoverlapping ID: %v\n", id)
 		}
 	}
-	fmt.Println()
-
 }
 
 func listAllCoords(c Claim) []string {
@@ -163,28 +167,19 @@ func isPointWithinClaim(x, y int, c Claim) bool {
 
 // gridsWithCount is an attempt to narrow the list of coords to check
 func gridsWithCount(xmax, ymax int, grid [][]int, gridclaimants map[string][]int) map[int][]string {
-
 	claimGrids := make(map[int][]string)
+	// go through each point and ...
 	for y := 0; y < ymax; y++ {
 		for x := 0; x < xmax; x++ {
-			//if grid[y][x] == 1 {
 			coord := fmt.Sprintf("%vx%v", x, y)
-			//fmt.Printf("%s : %+v\n", coord, gridclaimants[coord])
 			//log.Printf("%s %+v", coord, gridclaimants[coord])
+			// ... determine whether that point has a single claimaint ...
 			if len(gridclaimants[coord]) == 1 {
 				coords := claimGrids[gridclaimants[coord][0]]
 				coords = append(coords, coord)
+				// ... and gather all the points, by claim ID
 				claimGrids[gridclaimants[coord][0]] = coords
 			}
-			/*
-				for _, v := range gridclaimants[coord] {
-					//if _, ok := listUnique[v]; !ok {
-					listUnique[v] = listUnique[v] + 1
-					//}
-				}
-			*/
-
-			//}
 		}
 	}
 	return claimGrids
