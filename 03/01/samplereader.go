@@ -84,12 +84,15 @@ func main() {
 	// visualize blank grid
 	// visualizeBlankGrid(xmax, ymax)
 
-	// initialize a grid with 0's
-	grid := make([][]int, ymax)
+	// initialize a grid of appropriate size with 0's
+	grid := make([][]int, ymax+1)
 	for i := range grid {
-		grid[i] = make([]int, xmax)
+		grid[i] = make([]int, xmax+1)
 	}
 
+	gridclaimants := make(map[string][]int)
+
+	// in the grid, keep a counter of how many claims overlap
 	for _, c := range claims {
 		//fmt.Printf("Grid %v - %+v\n", k, c)
 		for y := c.Origin[1]; y < c.Origin[1]+c.Size[1]; y++ {
@@ -97,6 +100,12 @@ func main() {
 				// how many claims are in this spot
 				gridval := grid[y][x]
 				grid[y][x] = gridval + 1
+
+				// save the ID in the list of coords
+				coord := fmt.Sprintf("%vx%v", x, y)
+				claimants := gridclaimants[coord]
+				claimants = append(claimants, c.ID)
+				gridclaimants[coord] = claimants
 			}
 		}
 		//visualizeGrid(xmax, ymax, grid)
@@ -106,10 +115,83 @@ func main() {
 	if vis {
 		visualizeGrid(xmax, ymax, grid)
 	}
-	fmt.Println(countInches(xmax, ymax, grid))
+
+	// output the answer for 03.01
+	fmt.Printf("%v: %s\n", countInches(xmax, ymax, grid), "with >= 2 overlapping inches")
+
+	for id, grids := range gridsWithCount(xmax, ymax, grid, gridclaimants) {
+		//fmt.Println(id, grids)
+		var c Claim
+		for _, v := range claims {
+			if v.ID == id {
+				c = v
+				break
+			}
+		}
+		//fmt.Printf("  %s\n", listAllCoords(c))
+		if len(grids) == len(listAllCoords(c)) {
+			fmt.Printf("Unoverlapping ID: %v\n", id)
+		}
+	}
+	fmt.Println()
+
+}
+
+func listAllCoords(c Claim) []string {
+	var coords []string
+	for cy := c.Origin[1]; cy < c.Origin[1]+c.Size[1]; cy++ {
+		for cx := c.Origin[0]; cx < c.Origin[0]+c.Size[0]; cx++ {
+			coords = append(coords, fmt.Sprintf("%vx%v", cx, cy))
+		}
+	}
+	return coords
+}
+
+// isPointWithinClaim returns whether a particular point is within a claim
+func isPointWithinClaim(x, y int, c Claim) bool {
+	for cy := c.Origin[1]; cy < c.Origin[1]+c.Size[1]; cy++ {
+		for cx := c.Origin[0]; cx < c.Origin[0]+c.Size[0]; cx++ {
+			if x == cx {
+				if y == cy {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// gridsWithCount is an attempt to narrow the list of coords to check
+func gridsWithCount(xmax, ymax int, grid [][]int, gridclaimants map[string][]int) map[int][]string {
+
+	claimGrids := make(map[int][]string)
+	for y := 0; y < ymax; y++ {
+		for x := 0; x < xmax; x++ {
+			//if grid[y][x] == 1 {
+			coord := fmt.Sprintf("%vx%v", x, y)
+			//fmt.Printf("%s : %+v\n", coord, gridclaimants[coord])
+			//log.Printf("%s %+v", coord, gridclaimants[coord])
+			if len(gridclaimants[coord]) == 1 {
+				coords := claimGrids[gridclaimants[coord][0]]
+				coords = append(coords, coord)
+				claimGrids[gridclaimants[coord][0]] = coords
+			}
+			/*
+				for _, v := range gridclaimants[coord] {
+					//if _, ok := listUnique[v]; !ok {
+					listUnique[v] = listUnique[v] + 1
+					//}
+				}
+			*/
+
+			//}
+		}
+	}
+	return claimGrids
 }
 
 // countInches returns the number of coordinates with 2 or more claims
+// This yields the answer for 03.01
 func countInches(xmax, ymax int, grid [][]int) int {
 	var inches int
 	for y := 0; y < ymax; y++ {
@@ -124,8 +206,8 @@ func countInches(xmax, ymax int, grid [][]int) int {
 
 // visualizeGrid outputs a text grid with the marks within the given grid
 func visualizeGrid(xmax, ymax int, grid [][]int) {
-	for y := 0; y < ymax; y++ {
-		for x := 0; x < xmax; x++ {
+	for y := 0; y < ymax+1; y++ {
+		for x := 0; x < xmax+1; x++ {
 			fmt.Print(grid[y][x])
 		}
 		fmt.Print("\n")
@@ -133,8 +215,8 @@ func visualizeGrid(xmax, ymax int, grid [][]int) {
 }
 
 func visualizeBlankGrid(xmax, ymax int) {
-	for y := 0; y < ymax; y++ {
-		for x := 0; x < xmax; x++ {
+	for y := 0; y < ymax+1; y++ {
+		for x := 0; x < xmax+1; x++ {
 			fmt.Print(".")
 		}
 		fmt.Print("\n")
