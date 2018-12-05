@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -23,9 +24,15 @@ type rec struct {
 	GuardID int
 	Time    time.Time
 	Awake   bool
+	Entry   string
 }
 
-type Timeseries []rec
+// ByTime is a sorting type for records
+type ByTime []rec
+
+func (a ByTime) Len() int           { return len(a) }
+func (a ByTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByTime) Less(i, j int) bool { return (a[i].Time).Before(a[j].Time) }
 
 func main() {
 
@@ -44,18 +51,19 @@ func main() {
 
 }
 
-func ingest(datafilepath string) (Timeseries, error) {
-	var t Timeseries
+// ingest does ugly parsing
+func ingest(datafilepath string) ([]rec, error) {
+	var records []rec
+
 	databytes, err := ioutil.ReadFile(datafilepath)
 	if err != nil {
-		return t, err
+		return records, err
 	}
 	// jan 2, 2003 4:05:6
 	format := "2006-01-02 15:04"
 
-	var guardID int
 	for _, v := range strings.Split(fmt.Sprintf("%s", databytes), "\n") {
-		if v == "" {
+		if v == "" { // guard against blank entries
 			continue
 		}
 		parts := strings.Split(v, "]")
@@ -66,9 +74,15 @@ func ingest(datafilepath string) (Timeseries, error) {
 			log.Println(err)
 			continue
 		}
-		awake := false
+		r := rec{Time: eventTime, Entry: parts[1]}
+		records = append(records, r)
+	}
+	sort.Sort(ByTime(records))
 
-		action := parts[1]
+	var guardID int
+	for _, r := range records {
+		awake := false
+		action := r.Entry
 		if strings.Contains(action, "#") {
 			//log.Println(strings.Split(action, "#"))
 			guardIDs := strings.Split(strings.Split(action, "#")[1], " ")[0]
@@ -80,12 +94,14 @@ func ingest(datafilepath string) (Timeseries, error) {
 		} else if strings.Contains("awake", action) {
 			awake = true
 		}
-		r := rec{guardID, eventTime, awake}
+		r.GuardID = guardID
+		r.Awake = awake
+		// rec{GuardID: guardID, Time: eventTime, Awake: awake}
 		//log.Printf("%s -> %s %v %v", stamp, eventTime, guardID, awake)
 		log.Printf("%+v", r)
-		t = append(t, r)
+		records = append(records, r)
 	}
 
 	//time.Parse(format)
-	return t, nil
+	return records, nil
 }
