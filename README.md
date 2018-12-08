@@ -3,4 +3,4 @@
 
 https://adventofcode.com/2018
 
-The code here is as ugly as it needs to be, and no uglier :)
+The code here is as ugly as it needs to be, and no uglier :) (ok, *a lot* uglier)
