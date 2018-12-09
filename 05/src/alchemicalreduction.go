@@ -11,10 +11,14 @@ import (
 
 var datafile string
 var debug bool
+var shortest bool
+
+const alpha = "abcdefghijklmnopqrstuvwxyz"
 
 func init() {
 	flag.StringVar(&datafile, "file", "", "input file")
 	flag.BoolVar(&debug, "debug", false, "show debug log")
+	flag.BoolVar(&shortest, "shortest", false, "05.02 find the unit whose removal produces the shortest reacted polymer")
 	flag.Parse()
 }
 
@@ -35,8 +39,25 @@ func main() {
 		data = fmt.Sprintf("%s", databytes)
 	}
 
-	finalarray := react(strings.Split(data, ""))
-	fmt.Printf("final %v units\n", len(finalarray))
+	if shortest != true { // 05.01
+		finalarray := react(strings.Split(data, ""))
+		fmt.Printf("final %v units\n", len(finalarray))
+		os.Exit(0)
+	}
+
+	var shortestLetter string
+	shortestUnitLength := len(data)
+	for _, letter := range strings.Split(alpha, "") {
+		testdata := data
+		testdata = strings.Replace(testdata, letter, "", -1)
+		testdata = strings.Replace(testdata, strings.ToUpper(letter), "", -1)
+		units := len(react(strings.Split(testdata, "")))
+		if units < shortestUnitLength {
+			shortestUnitLength = units
+			shortestLetter = letter
+		}
+	}
+	fmt.Printf("Shortest reacted polymer length %v produced when removing '%s'\n", shortestUnitLength, shortestLetter)
 
 }
 
