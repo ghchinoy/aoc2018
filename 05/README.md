@@ -17,6 +17,17 @@ user    0m0.014s
 sys     0m0.012s
 ```
 
+or, the solution to 05.02:
+
+```
+$ time ./alchemicalreduction --shortest --file ../data/input.txt 
+Shortest reacted polymer length 4840 produced when removing 's'
+
+real    0m0.146s
+user    0m0.150s
+sys     0m0.024s
+```
+
 or, the solution to the simple example for 05.01:
 
 ```
