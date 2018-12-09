@@ -17,7 +17,7 @@ user    0m0.014s
 sys     0m0.012s
 ```
 
-or, the solution to 05.02:
+or, the solution to 05.02 (w/o goroutines):
 
 ```
 $ time ./alchemicalreduction --shortest --file ../data/input.txt 
@@ -26,6 +26,14 @@ Shortest reacted polymer length 4840 produced when removing 's'
 real    0m0.146s
 user    0m0.150s
 sys     0m0.024s
+```
+
+... using a goroutine (seems to take longer)
+
+```
+real    0m0.170s
+user    0m0.431s
+sys     0m0.126s
 ```
 
 or, the solution to the simple example for 05.01:

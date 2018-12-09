@@ -15,6 +15,11 @@ var shortest bool
 
 const alpha = "abcdefghijklmnopqrstuvwxyz"
 
+type result struct {
+	Letter     string
+	UnitLength int
+}
+
 func init() {
 	flag.StringVar(&datafile, "file", "", "input file")
 	flag.BoolVar(&debug, "debug", false, "show debug log")
@@ -39,15 +44,37 @@ func main() {
 		data = fmt.Sprintf("%s", databytes)
 	}
 
+	// 05.01
 	if shortest != true { // 05.01
 		finalarray := react(strings.Split(data, ""))
 		fmt.Printf("final %v units\n", len(finalarray))
 		os.Exit(0)
 	}
 
+	// 05.02
 	var shortestLetter string
 	shortestUnitLength := len(data)
+
+	// with goroutines
+	reactiontimes := make(chan result)
 	for _, letter := range strings.Split(alpha, "") {
+		go reactLessLetter(reactiontimes, data, letter)
+	}
+	for i := 0; i < len(alpha); i++ {
+		select {
+		case msg := <-reactiontimes:
+			if debug {
+				log.Println("received", msg)
+			}
+			if msg.UnitLength < shortestUnitLength {
+				shortestUnitLength = msg.UnitLength
+				shortestLetter = msg.Letter
+			}
+		}
+	}
+
+	// without goroutines
+	/* for _, letter := range strings.Split(alpha, "") {
 		testdata := data
 		testdata = strings.Replace(testdata, letter, "", -1)
 		testdata = strings.Replace(testdata, strings.ToUpper(letter), "", -1)
@@ -56,9 +83,22 @@ func main() {
 			shortestUnitLength = units
 			shortestLetter = letter
 		}
-	}
-	fmt.Printf("Shortest reacted polymer length %v produced when removing '%s'\n", shortestUnitLength, shortestLetter)
+	} */
 
+	fmt.Printf("Shortest reacted polymer length %v produced when removing '%s'\n", shortestUnitLength, shortestLetter)
+}
+
+func reactLessLetter(c chan result, data string, without string) result {
+	data = strings.Replace(
+		strings.Replace(data, strings.ToUpper(without), "", -1),
+		without,
+		"",
+		-1,
+	)
+	units := len(react(strings.Split(data, "")))
+	answer := result{without, units}
+	c <- answer
+	return answer
 }
 
 // questions
