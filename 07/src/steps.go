@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"sort"
 	"strings"
@@ -37,7 +36,6 @@ func main() {
 	var completedsteps []string
 	// steps and their prerequisites
 	steps := make(map[string][]string)
-	var incompletesteps []string
 
 	// assemble all step prerequsites
 	for _, instruction := range strings.Split(data, "\n") {
@@ -58,15 +56,10 @@ func main() {
 		//log.Printf("%s before %s\n", prereqStep, postreqStep)
 	}
 
-	incompletesteps = stepkeys(steps)
+	// seed the order (alpha), reorder it
+	order := reorder(stepkeys(steps), steps)
 
-	/* 	for _, i := range incompletesteps {
-	   		log.Printf("%s %+v", i, steps[i])
-	   	}
-	*/
-
-	order := reorder(incompletesteps, steps)
-
+	// this is the ugliest thing in the world
 	for len(order) != 0 {
 		for k, s := range order {
 			steptotal := len(steps[s])
@@ -98,13 +91,7 @@ func main() {
 	fmt.Println(strings.Join(completedsteps, ""))
 }
 
-func removeFromSteps(x string, steps map[string][]string) map[string][]string {
-	for s, todo := range steps {
-		steps[s] = removeFromSlice(todo, x)
-	}
-	return steps
-}
-
+// reorder might be even uglier
 func reorder(order []string, steps map[string][]string) []string {
 	//log.Println(">order:", order)
 	// stepcount, list of steps
@@ -138,6 +125,13 @@ func completedcount(in []string, c []string) int {
 		}
 	}
 	return count
+}
+
+func removeFromSteps(x string, steps map[string][]string) map[string][]string {
+	for s, todo := range steps {
+		steps[s] = removeFromSlice(todo, x)
+	}
+	return steps
 }
 
 func removeFromSlice(origin []string, remove string) []string {
@@ -189,50 +183,4 @@ func stepkeys(steps map[string][]string) []string {
 	}
 	sort.Strings(keys)
 	return keys
-}
-
-//////
-
-func _sliceContains(s []string, i string) bool {
-	sort.Strings(s)
-	log.Println("sliceContains", sort.SearchStrings(s, i))
-	if sort.SearchStrings(s, i) != 0 {
-		return true
-	}
-	return false
-}
-
-// isStepIn checks to see if key is in list
-func _isStepIn(step string, list []string) bool {
-	for _, v := range list {
-		if step == v {
-			return true
-		}
-	}
-	return false
-}
-
-// addDependency appends only if candidate doesn't already exist
-// also, sorts the slice
-func _addDependency(dependents []string, candidate string) []string {
-	if in(dependents, candidate) {
-		return dependents
-	}
-	dependents = append(dependents, candidate)
-	//sort.Strings(dependents)
-	return unique(dependents)
-}
-
-// remove removes slice x contents from slice in
-func _remove(in []string, x []string) []string {
-	var r []int
-	for k, v := range in {
-		for _, d := range x {
-			if d == v {
-				in = append(in[:k], in[k+1:]...)
-			}
-		}
-	}
-	log.Printf("%s - %s = %v", in, x, r)
-	return in
 }
